@@ -13,7 +13,7 @@
     </div>
     <div style="position: fixed; top: 17.5vh; left: 0.5vw; padding: 0.5vw; width: 10vw; height: 12.5vh; background-color: bisque;">
         <h1 style="font-size: 1vw;">Customisers</h1>
-        <p style="margin-top: -0.5vw;">Customise how the ball is ejected.</p>
+        <p style="margin-top: -0.5vw;">Customise how the ball is fired.</p>
         <form>
             <input type="range" name="initial speed" id="initial_speed" />
             <label for="initial_speed" id="initial_speed_label">50 m/s</label>
@@ -42,8 +42,8 @@
 
 
         // cannon rotation
-        const pcx = 50; // pivot cannon x
-        const pcy = 50;
+        const pcx = 32; // pivot cannon x
+        const pcy = 90;
 
         let cannonAngle = Math.PI * (25/180);
         let dragging = false;
@@ -75,6 +75,11 @@
 
         const draw = () => {
             cannon.clearRect(0, 0, cannonCanvas.width, cannonCanvas.height);
+
+            
+
+
+
             cannon.save();
 
             cannon.translate(pcx, pcy);
@@ -82,10 +87,10 @@
 
             // barrel
             cannon.beginPath();
-            cannon.moveTo(-15, -30);
-            cannon.quadraticCurveTo(-25, 30, -15, 30);
-            cannon.lineTo(15, 30);
-            cannon.quadraticCurveTo(25, 28, 15, -30);
+            cannon.moveTo(-15, -60);
+            cannon.quadraticCurveTo(-25, 0, -15, 0);
+            cannon.lineTo(15, 0);
+            cannon.quadraticCurveTo(25, -2, 15, -60);
             cannon.closePath();
 
             cannon.fillStyle = "#FFF";
@@ -96,19 +101,21 @@
 
             // top rim
             cannon.beginPath();
-            cannon.ellipse(0, -30, 15, 3, 0, 0, 2 * Math.PI);
+            cannon.ellipse(0, -60, 15, 3, 0, 0, 2 * Math.PI);
             cannon.fillStyle = "#BBB";
             cannon.fill();
             cannon.stroke();
 
+            cannon.restore();
+
+
+            
             // base
             cannon.beginPath();
-            cannon.arc(0, 28, 20, 0, 2 * Math.PI);
+            cannon.arc(32, 100, 30, Math.PI, 0);
             cannon.fillStyle = "#FF0000";
             cannon.fill();
             cannon.stroke();
-
-            cannon.restore();
         }
         
         draw();
