@@ -35,7 +35,7 @@ for (const part of src.split(/(<script>[\s\S]*?<\/script>|<style>[\s\S]*?<\/styl
 const uri = "data:text/html," + html.replace(/%/g, "%25").replace(/#/g, "%23").replace(/\n/g, "%0A");
 
 mkdirSync("dist", { recursive: true });
-writeFileSync("dist/index.html", html);
+writeFileSync("dist/index.build.html", html);
 writeFileSync("dist/uri.txt", uri);
 
 const bytes = Buffer.byteLength(uri);
