@@ -19,46 +19,76 @@
         // create cannon
         var cannonCanvas = document.getElementById("cannon");
         var cannon = cannonCanvas.getContext("2d");
+
+
+        // cannon rotation
+        const pcx = 50; // pivot cannon x
+        const pcy = 50;
+
+        let cannonAngle = 0;
+        let dragging = false;
+
+        cannonCanvas.addEventListener("mousedown", (e) => { dragging = true; updateAngle(e); }); // begin drag
+        window.addEventListener("mousemove", (e) => { if (dragging) { updateAngle(e) } }); // change angle during drag
+        window.addEventListener("mouseup", () => { dragging = false; }) // disable dragging
+
+        const updateAngle = (event) => {
+            console.log("changing angle...")
+            const rect = cannonCanvas.getBoundingClientRect();
+            const mouseX = event.clientX - rect.left;
+            const mouseY = event.clientY - rect.top; 
+
+            // relative angle
+            const dx = mouseX - pcx;
+            const dy = mouseY - pcy;
+
+            // some fun trig!!!! yayyy,!!!)£(!)£()¬
+            let angle = Math.atan2(dy, dx) + Math.PI/2;
+            const maxrad = (80 * Math.PI) / 180;
+            cannonAngle = Math.max(0, Math.min(angle, maxrad));
+
+            draw();
+        }
+
+        const draw = () => {
+            cannon.clearRect(0, 0, cannonCanvas.width, cannonCanvas.height);
+            cannon.save();
+
+            cannon.translate(pcx, pcy);
+            cannon.rotate(cannonAngle);
+
+            // barrel
+            cannon.beginPath();
+            cannon.moveTo(-15, -30);
+            cannon.quadraticCurveTo(-25, 30, -15, 30);
+            cannon.lineTo(15, 30);
+            cannon.quadraticCurveTo(25, 28, 15, -30);
+            cannon.closePath();
+
+            cannon.fillStyle = "#FFF";
+            cannon.fill();
+            cannon.strokeStyle = "#000";
+            cannon.stroke();
+
+
+            // top rim
+            cannon.beginPath();
+            cannon.ellipse(0, -30, 15, 3, 0, 0, 2 * Math.PI);
+            cannon.fillStyle = "#BBB";
+            cannon.fill();
+            cannon.stroke();
+
+            // base
+            cannon.beginPath();
+            cannon.arc(0, 28, 20, 0, 2 * Math.PI);
+            cannon.fillStyle = "#FF0000";
+            cannon.fill();
+            cannon.stroke();
+
+            cannon.restore();
+        }
         
-        // base
-
-
-        // barrel
-        cannon.beginPath();
-        
-        // left side curve
-        cannon.moveTo(25, 10);
-        cannon.quadraticCurveTo(0, 150, 25, 75);
-        cannon.stroke();
-
-
-        // right side curve
-        cannon.lineTo(75, 75);
-        cannon.quadraticCurveTo(100, 150, 75, 10);
-        cannon.stroke();
-
-        cannon.fillStyle = "#FFF";
-        cannon.fill();
-
-
-        // top bit
-        cannon.beginPath();
-
-        // CanvasRenderingContext2D.ellipse(x, y, x_radius, y_radius, rotation, start_angle, end_angle, direction);
-        cannon.ellipse(50, 10, 25, 5, 0, 0, 2 * Math.PI);
-        cannon.stroke();
-        cannon.fillStyle = "#BBB";
-        cannon.fill();
-        cannon.stroke();
-
-        
-        cannon.beginPath();
-        cannon.arc(50, 100, 40, 0, 2 * Math.PI);
-        cannon.stroke();
-        
-        cannon.fillStyle = "#FF0000";
-        cannon.fill();
-        
+        draw();
 
         // target
         var targetCanvas = document.getElementById("target");
@@ -82,6 +112,7 @@
         target.fill();
         target.stroke();
         // cannon.ellipse(x, y, rx, ry, rotation, start_angle, end_angle, counter_clockwise?);
+    
 
     </script>
 </body>
