@@ -1,4 +1,5 @@
 <body style="margin: 0; display: flex; flex-direction: row; width: 100vw; height: 100vh;">
+    <canvas id="projectile_canvas" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 5;"></canvas>
     <!-- background -->
     <div style="display: flex; flex-direction: column; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0;">
         <div style="background-color: deepskyblue; width: 100%; height: 80vh;"></div>
@@ -9,14 +10,18 @@
     <div style="position: fixed; top: 1vh; left: 0.5vw; padding: 0.5vw; width: 10vw; height: 12.5vh; background-color: bisque;">
         <h1 style="font-size: 1vw;">Projectile Motion</h1>
         <p>Objective: hit the target!</p>
-        <button>💣 Fire!</button>
+        <button id="fire_button">💣 Fire!</button>
     </div>
-    <div style="position: fixed; top: 17.5vh; left: 0.5vw; padding: 0.5vw; width: 10vw; height: 12.5vh; background-color: bisque;">
+    <div style="position: fixed; top: 17.5vh; left: 0.5vw; padding: 0.5vw; width: 15vw; height: 20vh; background-color: bisque;">
         <h1 style="font-size: 1vw;">Customisers</h1>
         <p style="margin-top: -0.5vw;">Customise how the ball is fired.</p>
         <form>
             <input type="range" name="initial speed" id="initial_speed" />
             <label for="initial_speed" id="initial_speed_label">50 m/s</label>
+
+
+            <input type="range" name="gravitational constant" id="gravitational_constant" value="9" />
+            <label for="gravitational_constant" id="gravitational_constant_label">9.81 m/s^2</label>
         </form>
     </div>
 
@@ -29,12 +34,84 @@
     
     
     <script>
+        // variables
+        // initial_speed <-- slider above
+        // gravitational_constant <-- slider
+        // angle <-- rotation
+
         // firing configuration
         const speedInput = document.getElementById("initial_speed");
         const speedLabel = document.getElementById("initial_speed_label");
         speedInput.addEventListener("input", (e) => { speedLabel.textContent = `${e.target.value} m/s`; });
 
+        const gInp = document.getElementById("gravitational_constant");
+        const gL = document.getElementById("gravitational_constant_label");
+        gInp.addEventListener("input", (e) => { gL.textContent = `${e.target.value} m/s^2`; });
 
+
+        // firing logistics
+        const fireButton = document.getElementById("fire_button");
+        const projectileCanvas = document.getElementById("projectile_canvas");
+        const projCtx = projectileCanvas.getContext("2d");
+
+        projectileCanvas.width = window.innerWidth;
+        projectileCanvas.height = window.innerHeight;
+
+        let projectile = null;
+        let animationFrameId = null;
+
+        let time = performance.now();
+        const fire = () => {
+            time = performance.now();
+            const speed = parseFloat(speedInput.value) || 25;
+            const gravity = parseFloat(gInp.value) || 9.81;
+
+            const cannonRect = cannonCanvas.getBoundingClientRect();
+            const barrelLength = 60;
+
+            const scale = cannonRect.height / cannonCanvas.height;
+            const startX = cannonRect.left + scale * (pcx + Math.sin(cannonAngle) * barrelLength);
+            const startY = cannonRect.top + scale * (pcy - Math.cos(cannonAngle) * barrelLength);
+
+            const fireAngle = cannonAngle - Math.PI / 2;
+            const vx = Math.cos(fireAngle) * speed;
+            const vy = Math.sin(fireAngle) * speed;
+
+            projectile = { x: startX, y: startY, vx: vx, vy: vy, g: gravity };
+
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+
+            animateProjectile();
+        };
+
+        fireButton.addEventListener("click", fire);
+
+        // animation loop
+
+        const animateProjectile = (currentTime = performance.now()) => {
+            const dt = (currentTime - time) / 1000;
+            time = currentTime;
+
+            projCtx.clearRect(0, 0, projectileCanvas.width, projectileCanvas.height);
+
+            if (projectile) {
+                projectile.x += projectile.vx * dt * 10;
+                projectile.vy += projectile.g * dt * 10;
+                projectile.y += projectile.vy * dt * 10;
+
+                projCtx.beginPath();
+                projCtx.arc(projectile.x, projectile.y, 8, 0, Math.PI * 2);
+                projCtx.fillStyle = "#333";
+                projCtx.fill();
+                projCtx.stroke();
+
+                if (projectile.y < projectileCanvas.height) {
+                    animationFrameId = requestAnimationFrame(animateProjectile);
+                } else {
+                    projectile = null;
+                }
+            }
+        }
 
         // create cannon
         var cannonCanvas = document.getElementById("cannon");
