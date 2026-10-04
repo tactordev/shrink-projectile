@@ -6,19 +6,82 @@
     </div>
 
     <!-- main objects -->
-    <div style="display: flex; flex-direction: row; margin-top: 75vh; width: 100%; justify-content: space-between; margin-left: 5vw; margin-right: 5vw; z-index: 10;">
-        <div>
-            <p>
-                cannon
-            </p>
-        </div>
+    <div style="display: flex; flex-direction: row; margin-top: 65vh; width: 100%; justify-content: space-between; margin-left: 5vw; margin-right: 5vw; z-index: 10;">
+        <canvas id="cannon" width="100" height="100" style="height: 20vh;">
 
-            <div>
-            <p>
-                target
-            </p>
-        </div>
+        </canvas>
+
+        <canvas id="target" width="200" height="150" style="height: 30vh; margin-top: 1.5vh;">
     </div>
     
-   
+    
+    <script>
+        // create cannon
+        var cannonCanvas = document.getElementById("cannon");
+        var cannon = cannonCanvas.getContext("2d");
+        
+        // base
+
+
+        // barrel
+        cannon.beginPath();
+        
+        // left side curve
+        cannon.moveTo(25, 10);
+        cannon.quadraticCurveTo(0, 150, 25, 75);
+        cannon.stroke();
+
+
+        // right side curve
+        cannon.lineTo(75, 75);
+        cannon.quadraticCurveTo(100, 150, 75, 10);
+        cannon.stroke();
+
+        cannon.fillStyle = "#FFF";
+        cannon.fill();
+
+
+        // top bit
+        cannon.beginPath();
+
+        // CanvasRenderingContext2D.ellipse(x, y, x_radius, y_radius, rotation, start_angle, end_angle, direction);
+        cannon.ellipse(50, 10, 25, 5, 0, 0, 2 * Math.PI);
+        cannon.stroke();
+        cannon.fillStyle = "#BBB";
+        cannon.fill();
+        cannon.stroke();
+
+        
+        cannon.beginPath();
+        cannon.arc(50, 100, 40, 0, 2 * Math.PI);
+        cannon.stroke();
+        
+        cannon.fillStyle = "#FF0000";
+        cannon.fill();
+        
+
+        // target
+        var targetCanvas = document.getElementById("target");
+        var target = targetCanvas.getContext("2d");
+
+        target.beginPath();
+        target.ellipse(125, 80, 75, 12.5, 0, 0, 2*Math.PI);
+        target.fillStyle = "#FF0000";
+        target.fill();
+        target.stroke();
+
+        target.beginPath();
+        target.ellipse(125, 80, 50, 10, 0, 0, 2*Math.PI);
+        target.fillStyle = "#FFF";
+        target.fill();
+        target.stroke();
+
+        target.beginPath();
+        target.ellipse(125, 80, 25, 5, 0, 0, 2*Math.PI);
+        target.fillStyle = "#FF0000";
+        target.fill();
+        target.stroke();
+        // cannon.ellipse(x, y, rx, ry, rotation, start_angle, end_angle, counter_clockwise?);
+
+    </script>
 </body>
