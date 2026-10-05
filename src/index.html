@@ -1,7 +1,7 @@
 <style>
     body { margin: 0; height: 100vh; background: linear-gradient(#0bf 80vh, green 0); }
     div { position: fixed; left: .5vw; top: 1vh; width: 10vw; height: 12.5vh; padding: .5vw; background: bisque; }
-    div+div { top: 17.5vh; width: 15vw; height: 20vh; }
+    div+div { top: 17.5vh; width: 15vw; height: 15vh; }
     h1 { font-size: 1vw; }
     canvas { position: fixed; }
 </style>
@@ -16,10 +16,15 @@
     <input type="range" id="s" oninput='a.value=value+" m/s"'><output id="a">50 m/s</output>
     <input type="range" id="g" value="9" oninput='b.value=value+"m/s^2"'><output id="b">9m/s^2</output>
 </div>
+<div style="margin-top:17.5vh;height:5vh;">
+    <h1 id="m">Score: 0</h1>
+</div>
 <canvas id="p" style="pointer-events:none"></canvas>
 <canvas id="c" height="100" style="left:5vw;top:65vh;height:20vh"></canvas>
 <canvas id="t" width="200" height="150" style="right:5vw;top:66.5vh;height:30vh"></canvas>
 <script>
+    let score = 0;
+
     const ballCtx = p.getContext("2d"),
     cannonCtx = c.getContext("2d"),
     targetCtx = t.getContext("2d");
@@ -29,6 +34,24 @@
     const paint = (ctx, colour) => { ctx.fillStyle = colour; ctx.fill(); ctx.stroke(); };
 
     p.height = innerHeight;
+
+    let ac;
+    const boom = () => {
+        const n = ac.sampleRate, b = ac.createBuffer(1, n, n), d = b.getChannelData(0);
+        for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / n) ** 3;
+        const s = ac.createBufferSource();
+        s.buffer = b;
+        s.connect(ac.destination);
+        s.start();
+    }
+
+    const ding = () => [523, 659, 784].map((f, i) => {
+        const o = ac.createOscillator(), t0 = ac.currentTime + i * .1;
+        o.frequency.value = f;
+        o.connect(ac.destination);
+        o.start(t0);
+        o.stop(t0 + .1);
+    });
 
     const draw = () => {
         c.width = 100;
@@ -61,6 +84,9 @@
     onmouseup = (e) => { dragging = 0 };
 
     f.onclick = () => {
+        ac = ac || new AudioContext;
+        boom();
+        
         const r = c.getBoundingClientRect(), k = r.height / 100,
         sin = Math.sin(angle), cos = Math.cos(angle);
 
@@ -78,6 +104,16 @@
         bx += vx * k;
         vy += gravity * k;
         by += vy * k;
+        if (by > innerHeight * .8) {
+            by = innerHeight * .8;
+            vx = vy = gravity = 0;
+            
+            const r = t.getBoundingClientRect(), k = r.height / 150;
+            Math.abs(bx - r.left - 125 * k) < 75 * k && (ding(), m.textContent = "Score: " + ++score);
+
+            t.style.right = Math.random() * 30 + 5 + "vw";
+
+        }
         ballCtx.beginPath();
         ballCtx.arc(bx, by, 8, 0, 7);
         paint(ballCtx);
