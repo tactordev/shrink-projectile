@@ -1,149 +1,102 @@
-<body style="margin: 0; display: flex; flex-direction: row; width: 100vw; height: 100vh;">
-    <canvas id="projectile_canvas" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 5;"></canvas>
-    <div style="display: flex; flex-direction: column; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0;">
-        <div style="background-color: deepskyblue; width: 100%; height: 80vh;"></div>
-        <div style="background-color: green; width: 100%; height: 20vh;"></div>
-    </div>
-    <div style="position: fixed; top: 1vh; left: 0.5vw; padding: 0.5vw; width: 10vw; height: 12.5vh; background-color: bisque;">
-        <h1 style="font-size: 1vw;">Projectile Motion</h1>
-        <p>Objective: hit the target!</p>
-        <button id="fire_button">💣 Fire!</button>
-    </div>
-    <div style="position: fixed; top: 17.5vh; left: 0.5vw; padding: 0.5vw; width: 15vw; height: 20vh; background-color: bisque;">
-        <h1 style="font-size: 1vw;">Customisers</h1>
-        <p style="margin-top: -0.5vw;">Customise how the ball is fired.</p>
-        <form>
-            <input type="range" name="initial speed" id="initial_speed" />
-            <label for="initial_speed" id="initial_speed_label">50 m/s</label>
-            <input type="range" name="gravitational constant" id="gravitational_constant" value="9" />
-            <label for="gravitational_constant" id="gravitational_constant_label">9.81 m/s^2</label>
-        </form>
-    </div>
-    <div style="display: flex; flex-direction: row; margin-top: 65vh; width: 100%; justify-content: space-between; margin-left: 5vw; margin-right: 5vw; z-index: 10;">
-        <canvas id="cannon" width="100" height="100" style="height: 20vh;"></canvas>
-        <canvas id="target" width="200" height="150" style="height: 30vh; margin-top: 1.5vh;"></canvas>
-    </div>
-    
-    
-    <script>
-        const speedInput = document.getElementById("initial_speed");
-        const speedLabel = document.getElementById("initial_speed_label");
-        speedInput.addEventListener("input", (e) => { speedLabel.textContent = `${e.target.value} m/s`; });
-        const gInp = document.getElementById("gravitational_constant");
-        const gL = document.getElementById("gravitational_constant_label");
-        gInp.addEventListener("input", (e) => { gL.textContent = `${e.target.value} m/s^2`; });
-        const fireButton = document.getElementById("fire_button");
-        const projectileCanvas = document.getElementById("projectile_canvas");
-        const projCtx = projectileCanvas.getContext("2d");
-        projectileCanvas.width = window.innerWidth;
-        projectileCanvas.height = window.innerHeight;
-        let projectile = null;
-        let animationFrameId = null;
-        let time = performance.now();
-        const fire = () => {
-            time = performance.now();
-            const speed = parseFloat(speedInput.value) || 25;
-            const gravity = parseFloat(gInp.value) || 9.81;
-            const cannonRect = cannonCanvas.getBoundingClientRect();
-            const barrelLength = 60;
-            const scale = cannonRect.height / cannonCanvas.height;
-            const startX = cannonRect.left + scale * (pcx + Math.sin(cannonAngle) * barrelLength);
-            const startY = cannonRect.top + scale * (pcy - Math.cos(cannonAngle) * barrelLength);
-            const fireAngle = cannonAngle - Math.PI / 2;
-            const vx = Math.cos(fireAngle) * speed;
-            const vy = Math.sin(fireAngle) * speed;
-            projectile = { x: startX, y: startY, vx: vx, vy: vy, g: gravity };
-            if (animationFrameId) cancelAnimationFrame(animationFrameId);
-            animateProjectile();
-        };
+<style>
+    body { margin: 0; height: 100vh; background: linear-gradient(#0bf 80vh, green 0); }
+    div { position: fixed; left: .5vw; top: 1vh; width: 10vw; height: 12.5vh; padding: .5vw; background: bisque; }
+    div+div { top: 17.5vh; width: 15vw; height: 20vh; }
+    h1 { font-size: 1vw; }
+    canvas { position: fixed; }
+</style>
+<div>
+    <h1>Projectile Motion</h1>
+    <p> Objective: hit the target!</p>
+    <button id="f">&#x1F4A3; Fire!</button>
+</div>
+<div>
+    <h1>Customisers</h1>
+    <p style="margin-top:-.5vw">Customise how the ball is fired.</p>
+    <input type="range" id="s" oninput='a.value=value+" m/s"'><output id="a">50 m/s</output>
+    <input type="range" id="g" value="9" oninput='b.value=value+"m/s^2"'><output id="b">9m/s^2</output>
+</div>
+<canvas id="p" style="pointer-events:none"></canvas>
+<canvas id="c" height="100" style="left:5vw;top:65vh;height:20vh"></canvas>
+<canvas id="t" width="200" height="150" style="right:5vw;top:66.5vh;height:30vh"></canvas>
+<script>
+    const ballCtx = p.getContext("2d"),
+    cannonCtx = c.getContext("2d"),
+    targetCtx = t.getContext("2d");
 
-        fireButton.addEventListener("click", fire);
-        const animateProjectile = (currentTime = performance.now()) => {
-            const dt = (currentTime - time) / 1000;
-            time = currentTime;
-            projCtx.clearRect(0, 0, projectileCanvas.width, projectileCanvas.height);
-            if (projectile) {
-                projectile.x += projectile.vx * dt * 10;
-                projectile.vy += projectile.g * dt * 10;
-                projectile.y += projectile.vy * dt * 10;
-                projCtx.beginPath();
-                projCtx.arc(projectile.x, projectile.y, 8, 0, Math.PI * 2);
-                projCtx.fillStyle = "#333";
-                projCtx.fill();
-                projCtx.stroke();
-                if (projectile.y < projectileCanvas.height) {
-                    animationFrameId = requestAnimationFrame(animateProjectile);
-                } else {
-                    projectile = null;
-                }
-            }
-        }
-        var cannonCanvas = document.getElementById("cannon");
-        var cannon = cannonCanvas.getContext("2d");
-        const pcx = 32; 
-        const pcy = 90;
-        let cannonAngle = Math.PI * (25/180);
-        let dragging = false;
-        cannonCanvas.addEventListener("mousedown", (e) => { dragging = true; updateAngle(e); });
-        window.addEventListener("mousemove", (e) => { if (dragging) { updateAngle(e) } });
-        window.addEventListener("mouseup", () => { dragging = false; });
-        const updateAngle = (event) => {
-            const rect = cannonCanvas.getBoundingClientRect();
-            const sx = cannonCanvas.width / rect.width;
-            const sy = cannonCanvas.height / rect.height;
-            const mouseX = (event.clientX - rect.left) * sx;
-            const mouseY = (event.clientY - rect.top) * sy; 
-            const dx = mouseX - pcx;
-            const dy = mouseY - pcy;
-            let angle = Math.atan2(dy, dx) + Math.PI/2;
-            const maxrad = (80 * Math.PI) / 180;
-            cannonAngle = Math.max(0, Math.min(angle, maxrad));
-            draw();
-        }
-        const draw = () => {
-            cannon.clearRect(0, 0, cannonCanvas.width, cannonCanvas.height);
-            cannon.save();
-            cannon.translate(pcx, pcy);
-            cannon.rotate(cannonAngle);
-            cannon.beginPath();
-            cannon.moveTo(-15, -60);
-            cannon.quadraticCurveTo(-25, 0, -15, 0);
-            cannon.lineTo(15, 0);
-            cannon.quadraticCurveTo(25, -2, 15, -60);
-            cannon.closePath();
-            cannon.fillStyle = "#FFF";
-            cannon.fill();
-            cannon.strokeStyle = "#000";
-            cannon.stroke();
-            cannon.beginPath();
-            cannon.ellipse(0, -60, 15, 3, 0, 0, 2 * Math.PI);
-            cannon.fillStyle = "#BBB";
-            cannon.fill();
-            cannon.stroke();
-            cannon.restore();
-            cannon.beginPath();
-            cannon.arc(32, 100, 30, Math.PI, 0);
-            cannon.fillStyle = "#FF0000";
-            cannon.fill();
-            cannon.stroke();
-        }
+    let angle = .44, dragging, bx = -9, by = -9, vx = 0, vy = 0, gravity = 0, last = 0;
+
+    const paint = (ctx, colour) => { ctx.fillStyle = colour; ctx.fill(); ctx.stroke(); };
+
+    p.height = innerHeight;
+
+
+
+    const draw = () => {
+        c.width = 100;
+        cannonCtx.save();
+        cannonCtx.translate(32, 90);
+        cannonCtx.rotate(angle);
+        cannonCtx.beginPath();
+        cannonCtx.moveTo(-15, -60);
+        cannonCtx.quadraticCurveTo(-25, 0, -15, 0);
+        cannonCtx.lineTo(15, 0);
+        cannonCtx.quadraticCurveTo(25, -2, 15, -60);
+        paint(cannonCtx, "white");
+        cannonCtx.beginPath();
+        cannonCtx.ellipse(0, -60, 15, 3, 0, 0, 7);
+        paint(cannonCtx, "silver");
+        cannonCtx.restore();
+        cannonCtx.beginPath();
+        cannonCtx.arc(32, 100, 30, 3.14, 0);
+        paint(cannonCtx, "red");
+    }
+
+    const aim = (e) => {
+        const r = c.getBoundingClientRect(), k = 100 / r.width;
+        angle = Math.max(0, Math.min(1.4, Math.atan2((e.clientY - r.top) * k - 90, (e.clientX - r.left) * k - 32) + 1.57));
         draw();
-        var targetCanvas = document.getElementById("target");
-        var target = targetCanvas.getContext("2d");
-        target.beginPath();
-        target.ellipse(125, 80, 75, 12.5, 0, 0, 2*Math.PI);
-        target.fillStyle = "#FF0000";
-        target.fill();
-        target.stroke();
-        target.beginPath();
-        target.ellipse(125, 80, 50, 10, 0, 0, 2*Math.PI);
-        target.fillStyle = "#FFF";
-        target.fill();
-        target.stroke();
-        target.beginPath();
-        target.ellipse(125, 80, 25, 5, 0, 0, 2*Math.PI);
-        target.fillStyle = "#FF0000";
-        target.fill();
-        target.stroke();
-    </script>
-</body>
+    }
+
+    c.onmousedown = (e) => { dragging = 1; aim(e); };
+    onmousemove = (e) => { dragging && aim(e); };
+    onmouseup = (e) => { dragging = 0 };
+
+    f.onclick = () => {
+        const r = c.getBoundingClientRect(), k = r.height / 100,
+        sin = Math.sin(angle), cos = Math.cos(angle);
+
+        bx = r.left + k * (32 + sin * 60);
+        by = r.top + k * (90 - cos * 60);
+        vx = sin * s.value;
+        vy = -cos * s.value;
+        gravity = +g.value;
+    }
+
+    const loop = (now) => {
+        const k = (now - last) / 100;
+        last = now;
+        p.width = innerWidth;
+        bx += vx * k;
+        vy += gravity * k;
+        by += vy * k;
+        if (by > innerHeight * .8) {
+            by = innerHeight * .8;
+            vx = vy = gravity = 0;
+            
+        }
+        ballCtx.beginPath();
+        ballCtx.arc(bx, by, 8, 0, 7);
+        paint(ballCtx);
+        requestAnimationFrame(loop);
+    };
+
+    for (let i = 3; i; i--) {
+        targetCtx.beginPath();
+        targetCtx.ellipse(125, 80, 25 * i, 4 * i, 0, 0, 7);
+        paint(targetCtx, i % 2 ? "red" : "white");
+    }
+
+    draw();
+    loop(0);
+</script>
